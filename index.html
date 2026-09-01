@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dakshin Flavors & Kitchen - Food Delivery</title>
-  
-  <!-- Fonts & Icons -->
+  <title>Eats Book - Order Food Online</title>
+
+  <!-- Google Fonts & FontAwesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,12 +20,13 @@
   <header>
     <div class="navbar">
       <a href="#" class="logo">
-        <i class="fa-solid fa-pepper-hot"></i> CraveBite
+        <i class="fa-solid fa-book-bookmark"></i>
+        <span>Eats<strong>Book</strong></span>
       </a>
 
       <div class="search-box">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="searchInput" placeholder="Search Dosa, Biryani, Coffee, Burgers..." />
+        <input type="text" id="searchInput" placeholder="Search for Tiffins, Biriyanis, Meals, Restaurants..." />
       </div>
 
       <div class="nav-actions">
@@ -38,43 +39,43 @@
     </div>
   </header>
 
-  <!-- RESTAURANT DETAILS CARD -->
-  <section class="restaurant-section">
-    <div class="restaurant-banner">
-      <img src="https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=1200&q=80" alt="Restaurant Interior" class="banner-bg" />
-      <div class="restaurant-overlay"></div>
-      
-      <div class="restaurant-header-content">
-        <div class="restaurant-badge"><i class="fa-solid fa-shield-halved"></i> FSSAI Certified • Top Rated</div>
-        <h1 class="restaurant-name">Dakshin Flavors & Global Kitchen</h1>
-        <p class="restaurant-cuisine">Authentic South Indian • Chettinad • Hyderabadi Biryani • Continental</p>
-        
-        <div class="restaurant-meta-bar">
-          <div class="meta-item rating-chip">
-            <i class="fa-solid fa-star"></i> 4.8 (2.4k+ Reviews)
-          </div>
-          <div class="meta-item">
-            <i class="fa-solid fa-clock"></i> 25 - 35 mins
-          </div>
-          <div class="meta-item">
-            <i class="fa-solid fa-location-dot"></i> 2.4 km • Indiranagar
-          </div>
-          <div class="meta-item">
-            <i class="fa-solid fa-indian-rupee-sign"></i> ₹350 for two
-          </div>
-        </div>
-
-        <div class="promo-pill">
-          <i class="fa-solid fa-tag"></i> Flat 20% OFF up to ₹100 using code <strong>DAKSHIN20</strong>
+  <!-- PROMO BANNER -->
+  <section class="banner-section">
+    <div class="promo-banner">
+      <div class="banner-content">
+        <span class="badge-deal"><i class="fa-solid fa-fire"></i> DAILY OFFERS</span>
+        <h1>Craving Authentic Food?</h1>
+        <p>Explore top restaurants serving fresh Tiffins, royal Biriyanis, full Meals & fresh Juices.</p>
+        <div class="code-chip">
+          <i class="fa-solid fa-tag"></i> Use Coupon: <strong>EATSBOOK20</strong> for 20% OFF
         </div>
       </div>
     </div>
   </section>
 
-  <!-- CATEGORIES -->
-  <section class="categories-wrapper">
+  <!-- TOP RESTAURANTS LIST -->
+  <section class="section-container">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Popular Restaurants</h2>
+        <p class="section-subtitle">Select a restaurant to filter its menu</p>
+      </div>
+      <button class="reset-filter-btn" id="resetRestaurantBtn">Show All Restaurants</button>
+    </div>
+
+    <div class="restaurants-grid" id="restaurantsGrid">
+      <!-- Injected via script.js -->
+    </div>
+  </section>
+
+  <!-- CATEGORIES FILTER -->
+  <section class="section-container" style="margin-top: 2rem;">
     <div class="category-header-wrap">
-      <h2 class="section-title">Menu Categories</h2>
+      <div>
+        <h2 class="section-title" id="menuSectionTitle">Explore Menu</h2>
+        <p class="section-subtitle" id="activeFilterLabel">Showing all categories</p>
+      </div>
+
       <div class="dietary-filter">
         <button class="filter-toggle" id="vegOnlyToggle">
           <span class="food-type-icon veg"></span> Veg Only
@@ -83,28 +84,27 @@
     </div>
 
     <div class="categories-list" id="categoryContainer">
-      <button class="category-pill active" data-category="all"><i class="fa-solid fa-utensils"></i> All Items</button>
-      <button class="category-pill" data-category="South Indian"><i class="fa-solid fa-plate-wheat"></i> South Indian</button>
-      <button class="category-pill" data-category="Biryani"><i class="fa-solid fa-bowl-rice"></i> Biryani & Rice</button>
-      <button class="category-pill" data-category="Starters"><i class="fa-solid fa-fire-flame-curved"></i> Starters & Curries</button>
-      <button class="category-pill" data-category="Burgers & Pizzas"><i class="fa-solid fa-burger"></i> Global Bites</button>
-      <button class="category-pill" data-category="Beverages"><i class="fa-solid fa-mug-hot"></i> Beverages</button>
-      <button class="category-pill" data-category="Desserts"><i class="fa-solid fa-ice-cream"></i> Desserts</button>
+      <button class="category-pill active" data-category="all"><i class="fa-solid fa-border-all"></i> All Menu</button>
+      <button class="category-pill" data-category="Tiffins"><i class="fa-solid fa-plate-wheat"></i> Tiffins</button>
+      <button class="category-pill" data-category="Biriyanis"><i class="fa-solid fa-bowl-rice"></i> Biriyanis</button>
+      <button class="category-pill" data-category="Meals"><i class="fa-solid fa-utensils"></i> Full Meals</button>
+      <button class="category-pill" data-category="Snacks"><i class="fa-solid fa-cookie-bite"></i> Snacks & Bites</button>
+      <button class="category-pill" data-category="Juices"><i class="fa-solid fa-glass-water"></i> Juices & Drinks</button>
     </div>
   </section>
 
-  <!-- PRODUCT GRID -->
-  <section class="food-section">
+  <!-- FOOD CARDS GRID -->
+  <section class="section-container food-section">
     <div class="food-grid" id="foodGrid">
-      <!-- Items populated dynamically via script.js -->
+      <!-- Injected via script.js -->
     </div>
   </section>
 
-  <!-- CART SIDEBAR / DRAWER -->
+  <!-- CART DRAWER -->
   <div class="cart-drawer-overlay" id="cartOverlay"></div>
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-header">
-      <h3>Your Order (<span id="cartCountHeader">0</span>)</h3>
+      <h3>Your Bag (<span id="cartCountHeader">0</span>)</h3>
       <button class="close-cart-btn" id="closeCartBtn"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
@@ -114,16 +114,16 @@
 
     <div class="cart-summary">
       <div class="coupon-box">
-        <input type="text" id="couponInput" placeholder="Enter coupon (DAKSHIN20)" />
+        <input type="text" id="couponInput" placeholder="Enter EATSBOOK20" />
         <button id="applyCouponBtn">Apply</button>
       </div>
-      
+
       <div class="summary-row">
         <span>Item Subtotal</span>
         <span id="subtotalPrice">₹0.00</span>
       </div>
       <div class="summary-row">
-        <span>Delivery & Packaging</span>
+        <span>Delivery & Handling</span>
         <span id="deliveryFee">₹35.00</span>
       </div>
       <div class="summary-row" id="discountRow" style="display: none; color: var(--success);">
@@ -131,7 +131,7 @@
         <span id="discountPrice">-₹0.00</span>
       </div>
       <div class="summary-row summary-total">
-        <span>To Pay</span>
+        <span>Grand Total</span>
         <span id="totalPrice">₹0.00</span>
       </div>
       <button class="checkout-btn" id="openCheckoutModalBtn">Proceed to Checkout</button>
@@ -141,98 +141,98 @@
   <!-- CHECKOUT MODAL -->
   <div class="modal-overlay" id="checkoutModal">
     <div class="modal">
-      <h3 style="margin-bottom: 1.25rem;"><i class="fa-solid fa-location-crosshairs"></i> Delivery Address</h3>
+      <h3 style="margin-bottom: 1.2rem;"><i class="fa-solid fa-truck-fast"></i> Delivery Details</h3>
       <form id="checkoutForm">
         <div class="form-group">
           <label>Full Name</label>
           <input type="text" required placeholder="Aarav Sharma" id="custName" />
         </div>
         <div class="form-group">
-          <label>Complete Address</label>
-          <textarea required rows="2" placeholder="Flat No., Landmark, Street, Area" id="custAddress"></textarea>
+          <label>Delivery Address</label>
+          <textarea required rows="2" placeholder="House No, Landmark, Street Area..." id="custAddress"></textarea>
         </div>
         <div class="form-group">
           <label>Phone Number</label>
           <input type="tel" required placeholder="+91 98765 43210" id="custPhone" />
         </div>
         <div class="form-group">
-          <label>Payment Mode</label>
+          <label>Payment Method</label>
           <select id="custPayment">
             <option value="upi">UPI (GPay / PhonePe / Paytm)</option>
-            <option value="cod">Cash / UPI on Delivery</option>
+            <option value="cod">Cash on Delivery</option>
             <option value="card">Credit / Debit Card</option>
           </select>
         </div>
-        <button type="submit" class="checkout-btn" style="margin-top: 1rem;">Place Order Now</button>
+        <button type="submit" class="checkout-btn" style="margin-top: 1rem;">Confirm & Place Order</button>
         <button type="button" id="closeCheckoutBtn" class="cancel-link">Cancel</button>
       </form>
     </div>
   </div>
 
-  <!-- LIVE DELIVERY TRACKING MODAL WITH DELIVERY BOY DETAILS -->
+  <!-- LIVE DELIVERY TRACKING MODAL -->
   <div class="modal-overlay" id="trackerModal">
     <div class="modal tracking-modal">
       <div class="tracking-top-bar">
         <div>
-          <span class="live-pulse"></span> <strong style="color: var(--success);">LIVE TRACKING</strong>
-          <h3 id="trackingStatusHeading">Driver on the way!</h3>
-          <p class="order-id-label" id="orderIdDisplay">Order #DK-84920</p>
+          <span class="live-pulse"></span> <strong style="color: var(--success); font-size: 0.8rem;">EATS BOOK LIVE TRACKING</strong>
+          <h3 id="trackingStatusHeading" style="margin-top: 0.2rem;">Rider is heading to the restaurant</h3>
+          <p class="order-id-label" id="orderIdDisplay">Order #EB-92841</p>
         </div>
         <div class="eta-box">
-          <span class="eta-time" id="etaTimeDisplay">18</span>
+          <span class="eta-time" id="etaTimeDisplay">22</span>
           <span class="eta-unit">MINS ETA</span>
         </div>
       </div>
 
-      <!-- DELIVERY PARTNER CARD -->
+      <!-- Delivery Partner Card -->
       <div class="driver-card">
-        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80" alt="Delivery Partner" class="driver-photo" id="driverPhoto" />
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&q=80" alt="Delivery Guy" class="driver-photo" id="driverPhoto" />
         <div class="driver-info">
           <div class="driver-name-row">
             <h4 id="driverName">Ramesh Kumar</h4>
             <span class="driver-rating"><i class="fa-solid fa-star"></i> 4.9</span>
           </div>
-          <p class="driver-vehicle"><i class="fa-solid fa-motorcycle"></i> Yamaha FZ • <span id="driverPlate">KA-05-EQ-7712</span></p>
-          <span class="driver-tag"><i class="fa-solid fa-shield-virus"></i> Vaccinated & Sanitized</span>
+          <p class="driver-vehicle"><i class="fa-solid fa-motorcycle"></i> Hero Splendor • <span id="driverPlate">KA-04-ER-9912</span></p>
+          <span class="driver-tag"><i class="fa-solid fa-circle-check"></i> Eats Book Super Partner</span>
         </div>
         <a href="tel:+919876543210" class="driver-call-btn" id="callDriverBtn" title="Call Delivery Partner">
           <i class="fa-solid fa-phone"></i>
         </a>
       </div>
 
-      <!-- STEP TRACKER PROGRESS -->
+      <!-- Live Stepper -->
       <div class="tracker-steps">
         <div class="tracker-step completed" id="step1">
           <div class="step-icon"><i class="fa-solid fa-receipt"></i></div>
           <div class="step-text">
-            <h4>Order Confirmed</h4>
-            <p>Dakshin Kitchen has accepted your order</p>
+            <h4>Order Accepted</h4>
+            <p>Restaurant received your food order</p>
           </div>
         </div>
         <div class="tracker-step active" id="step2">
-          <div class="step-icon"><i class="fa-solid fa-fire-burner"></i></div>
+          <div class="step-icon"><i class="fa-solid fa-kitchen-set"></i></div>
           <div class="step-text">
-            <h4>Food is Cooking</h4>
-            <p>Chef is preparing your fresh meal</p>
+            <h4>Cooking in Progress</h4>
+            <p>Chef is freshly packing your food</p>
           </div>
         </div>
         <div class="tracker-step" id="step3">
           <div class="step-icon"><i class="fa-solid fa-person-biking"></i></div>
           <div class="step-text">
             <h4>Out for Delivery</h4>
-            <p>Ramesh has picked up your food</p>
+            <p>Delivery partner picked up the package</p>
           </div>
         </div>
         <div class="tracker-step" id="step4">
           <div class="step-icon"><i class="fa-solid fa-house-chimney-check"></i></div>
           <div class="step-text">
-            <h4>Order Delivered</h4>
-            <p>Enjoy your authentic South Indian feast!</p>
+            <h4>Delivered</h4>
+            <p>Enjoy your meal from Eats Book!</p>
           </div>
         </div>
       </div>
 
-      <button class="checkout-btn" id="closeTrackerBtn">Close Tracker</button>
+      <button class="checkout-btn" id="closeTrackerBtn">Close Tracking</button>
     </div>
   </div>
 
@@ -242,7 +242,7 @@
     <span id="toastMsg">Notification message</span>
   </div>
 
-  <!-- External JS -->
+  <!-- External Script -->
   <script src="script.js"></script>
 </body>
 </html>
