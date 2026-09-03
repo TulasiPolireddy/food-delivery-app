@@ -160,7 +160,7 @@ header {
   opacity: 0.9;
 }
 
-/* User Logged In Chip */
+/* User Profile Chip */
 .user-profile-chip {
   display: flex;
   align-items: center;
@@ -284,7 +284,7 @@ header {
 }
 
 /* =========================================
-   SECTION HEADINGS & RESTAURANT CARDS
+   RESTAURANT GRID
    ========================================= */
 .section-container {
   max-width: 1200px;
@@ -373,7 +373,7 @@ header {
 }
 
 /* =========================================
-   CATEGORIES & DIETARY FILTER
+   CATEGORIES & FILTER
    ========================================= */
 .category-header-wrap {
   display: flex;
@@ -750,7 +750,7 @@ header {
 }
 
 /* =========================================
-   AUTH MODAL (LOGIN & SIGN UP)
+   AUTH MODAL & DEMO ACCOUNT GROUP
    ========================================= */
 .auth-modal {
   max-width: 420px;
@@ -792,26 +792,43 @@ header {
   background: var(--primary);
 }
 
+.demo-login-group {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.demo-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
 .demo-auth-btn {
   width: 100%;
   background: #f1f5f9;
   color: var(--secondary);
-  border: 1px dashed var(--border);
-  padding: 0.7rem;
+  border: 1px solid var(--border);
+  padding: 0.65rem 0.75rem;
   border-radius: var(--radius-md);
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: 600;
+  font-size: 0.82rem;
   cursor: pointer;
-  margin-top: 0.75rem;
   transition: var(--transition);
+  text-align: left;
 }
 
 .demo-auth-btn:hover {
   background: #e2e8f0;
+  border-color: var(--secondary);
 }
 
 /* =========================================
-   PREVIOUS ORDER HISTORY MODAL
+   ORDER HISTORY MODAL & CARDS
    ========================================= */
 .orders-modal {
   max-width: 560px;
