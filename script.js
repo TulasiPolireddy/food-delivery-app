@@ -252,9 +252,12 @@ const menuData = [
 ];
 
 // =========================================
-// 3. APP STATE & CONSTANTS
+// 3. APP STATE & LOCAL STORAGE
 // =========================================
 let cart = JSON.parse(localStorage.getItem('eatsbook_cart')) || [];
+let currentUser = JSON.parse(localStorage.getItem('eatsbook_user')) || null;
+let orderHistory = JSON.parse(localStorage.getItem('eatsbook_orders')) || [];
+
 let appliedDiscount = 0;
 let selectedRestaurantId = null;
 let activeCategory = 'all';
@@ -262,7 +265,7 @@ let vegOnlyFilter = false;
 const DELIVERY_FEE = 35.00;
 
 // =========================================
-// 4. DOM SELECTORS
+// 4. DOM ELEMENTS
 // =========================================
 const restaurantsGrid = document.getElementById('restaurantsGrid');
 const resetRestaurantBtn = document.getElementById('resetRestaurantBtn');
@@ -273,7 +276,7 @@ const searchInput = document.getElementById('searchInput');
 const menuSectionTitle = document.getElementById('menuSectionTitle');
 const activeFilterLabel = document.getElementById('activeFilterLabel');
 
-// Cart Drawer
+// Cart Elements
 const cartDrawer = document.getElementById('cartDrawer');
 const cartOverlay = document.getElementById('cartOverlay');
 const openCartBtn = document.getElementById('openCartBtn');
@@ -282,7 +285,6 @@ const cartItemsContainer = document.getElementById('cartItemsContainer');
 const cartBadge = document.getElementById('cartBadge');
 const cartCountHeader = document.getElementById('cartCountHeader');
 
-// Bill Summary
 const subtotalPrice = document.getElementById('subtotalPrice');
 const totalPrice = document.getElementById('totalPrice');
 const discountRow = document.getElementById('discountRow');
@@ -290,7 +292,24 @@ const discountPrice = document.getElementById('discountPrice');
 const couponInput = document.getElementById('couponInput');
 const applyCouponBtn = document.getElementById('applyCouponBtn');
 
-// Checkout & Tracking
+// Auth Elements
+const authModal = document.getElementById('authModal');
+const closeAuthBtn = document.getElementById('closeAuthBtn');
+const authNavContainer = document.getElementById('authNavContainer');
+const loginTabBtn = document.getElementById('loginTabBtn');
+const signupTabBtn = document.getElementById('signupTabBtn');
+const loginForm = document.getElementById('loginForm');
+const signupForm = document.getElementById('signupForm');
+const quickDemoLoginBtn = document.getElementById('quickDemoLoginBtn');
+
+// Orders History Elements
+const ordersModal = document.getElementById('ordersModal');
+const openOrdersBtn = document.getElementById('openOrdersBtn');
+const closeOrdersBtn = document.getElementById('closeOrdersBtn');
+const orderHistoryContainer = document.getElementById('orderHistoryContainer');
+const ordersBadge = document.getElementById('ordersBadge');
+
+// Checkout & Tracker Elements
 const checkoutModal = document.getElementById('checkoutModal');
 const openCheckoutModalBtn = document.getElementById('openCheckoutModalBtn');
 const closeCheckoutBtn = document.getElementById('closeCheckoutBtn');
@@ -303,7 +322,190 @@ const toast = document.getElementById('toast');
 const toastMsg = document.getElementById('toastMsg');
 
 // =========================================
-// 5. RENDER RESTAURANTS
+// 5. USER AUTHENTICATION
+// =========================================
+function updateAuthUI() {
+  if (currentUser) {
+    authNavContainer.innerHTML = `
+      <div class="user-profile-chip">
+        <div class="user-avatar-circle">${currentUser.name.charAt(0).toUpperCase()}</div>
+        <span class="user-name-text">${currentUser.name.split(' ')[0]}</span>
+        <button class="logout-icon-btn" onclick="logoutUser()" title="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
+      </div>
+    `;
+    // Pre-fill checkout form if logged in
+    document.getElementById('custName').value = currentUser.name || '';
+    document.getElementById('custPhone').value = currentUser.phone || '';
+  } else {
+    authNavContainer.innerHTML = `
+      <button class="login-btn" onclick="openAuthModal()">
+        <i class="fa-solid fa-user"></i>
+        <span>Login</span>
+      </button>
+    `;
+  }
+}
+
+function openAuthModal() {
+  authModal.classList.add('open');
+}
+
+function closeAuthModal() {
+  authModal.classList.remove('open');
+}
+
+// Toggle Tabs
+loginTabBtn.addEventListener('click', () => {
+  loginTabBtn.classList.add('active');
+  signupTabBtn.classList.remove('active');
+  loginForm.style.display = 'block';
+  signupForm.style.display = 'none';
+});
+
+signupTabBtn.addEventListener('click', () => {
+  signupTabBtn.classList.add('active');
+  loginTabBtn.classList.remove('active');
+  signupForm.style.display = 'block';
+  loginForm.style.display = 'none';
+});
+
+// Handle Login Form Submit
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const emailVal = document.getElementById('loginEmail').value.trim();
+  const nameFromEmail = emailVal.split('@')[0] || "Foodie User";
+  
+  currentUser = {
+    name: nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1),
+    email: emailVal,
+    phone: "+91 98765 43210"
+  };
+
+  localStorage.setItem('eatsbook_user', JSON.stringify(currentUser));
+  updateAuthUI();
+  closeAuthModal();
+  showToast(`Welcome back to Eats Book, ${currentUser.name}!`);
+});
+
+// Handle Sign Up Form Submit
+signupForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = document.getElementById('signupName').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
+  const phone = document.getElementById('signupPhone').value.trim();
+
+  currentUser = { name, email, phone };
+  localStorage.setItem('eatsbook_user', JSON.stringify(currentUser));
+  updateAuthUI();
+  closeAuthModal();
+  showToast(`Account created! Welcome, ${name}!`);
+});
+
+// Quick Demo Login
+quickDemoLoginBtn.addEventListener('click', () => {
+  currentUser = {
+    name: "Aarav Sharma",
+    email: "aarav@example.com",
+    phone: "+91 98765 43210"
+  };
+  localStorage.setItem('eatsbook_user', JSON.stringify(currentUser));
+  updateAuthUI();
+  closeAuthModal();
+  showToast("Logged in as Aarav Sharma!");
+});
+
+function logoutUser() {
+  currentUser = null;
+  localStorage.removeItem('eatsbook_user');
+  updateAuthUI();
+  showToast("Logged out successfully.");
+}
+
+closeAuthBtn.addEventListener('click', closeAuthModal);
+
+// =========================================
+// 6. PREVIOUS ORDER HISTORY SYSTEM
+// =========================================
+function updateOrdersBadge() {
+  ordersBadge.innerText = orderHistory.length;
+}
+
+function renderOrderHistory() {
+  updateOrdersBadge();
+
+  if (orderHistory.length === 0) {
+    orderHistoryContainer.innerHTML = `
+      <div style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+        <i class="fa-solid fa-receipt" style="font-size: 3rem; opacity: 0.3; margin-bottom: 0.75rem;"></i>
+        <p style="font-weight: 700; font-size: 1.1rem; color: var(--text);">No previous orders found!</p>
+        <small>Your ordered dishes and receipts will be saved right here.</small>
+      </div>
+    `;
+    return;
+  }
+
+  orderHistoryContainer.innerHTML = orderHistory.map(order => `
+    <div class="order-history-card">
+      <div class="order-card-header">
+        <div>
+          <span class="order-id-txt">${order.orderId}</span>
+          <div class="order-date"><i class="fa-regular fa-calendar"></i> ${order.date}</div>
+        </div>
+        <span class="order-status-badge ${order.status === 'Delivered' ? 'delivered' : 'live'}">
+          ${order.status === 'Delivered' ? '● Delivered' : '● In Transit'}
+        </span>
+      </div>
+      <div class="order-items-summary">
+        ${order.items.map(i => `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.2rem;">
+            <span>${i.qty}x ${i.title}</span>
+            <span style="font-weight: 600;">₹${i.price * i.qty}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="order-card-footer">
+        <div>
+          <small style="color: var(--text-muted);">Total Paid</small>
+          <div class="order-price-val">₹${order.totalAmount}</div>
+        </div>
+        <button class="reorder-btn" onclick="reorderItems('${order.orderId}')">
+          <i class="fa-solid fa-rotate-right"></i> Reorder Items
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function reorderItems(orderId) {
+  const pastOrder = orderHistory.find(o => o.orderId === orderId);
+  if (!pastOrder) return;
+
+  pastOrder.items.forEach(pastItem => {
+    const existing = cart.find(c => c.id === pastItem.id);
+    if (existing) {
+      existing.qty += pastItem.qty;
+    } else {
+      cart.push({ ...pastItem });
+    }
+  });
+
+  saveCart();
+  ordersModal.classList.remove('open');
+  toggleCart(true);
+  showToast("Reordered items added to your bag!");
+}
+
+openOrdersBtn.addEventListener('click', () => {
+  renderOrderHistory();
+  ordersModal.classList.add('open');
+});
+
+closeOrdersBtn.addEventListener('click', () => {
+  ordersModal.classList.remove('open');
+});
+
+// =========================================
+// 7. RENDER RESTAURANTS & MENU
 // =========================================
 function renderRestaurants() {
   restaurantsGrid.innerHTML = restaurantsData.map(res => `
@@ -319,11 +521,7 @@ function renderRestaurants() {
 }
 
 function selectRestaurant(id) {
-  if (selectedRestaurantId === id) {
-    selectedRestaurantId = null;
-  } else {
-    selectedRestaurantId = id;
-  }
+  selectedRestaurantId = (selectedRestaurantId === id) ? null : id;
   renderRestaurants();
   renderMenu();
 }
@@ -334,13 +532,9 @@ resetRestaurantBtn.addEventListener('click', () => {
   renderMenu();
 });
 
-// =========================================
-// 6. RENDER FOOD MENU
-// =========================================
 function renderMenu() {
   const query = searchInput.value.toLowerCase().trim();
 
-  // Update Section Title & Subtitle Labels
   if (selectedRestaurantId) {
     const matchedRes = restaurantsData.find(r => r.id === selectedRestaurantId);
     menuSectionTitle.innerText = `Menu from ${matchedRes.name}`;
@@ -397,7 +591,7 @@ function renderMenu() {
 }
 
 // =========================================
-// 7. CART SYSTEM
+// 8. CART MANAGEMENT
 // =========================================
 function saveCart() {
   localStorage.setItem('eatsbook_cart', JSON.stringify(cart));
@@ -476,7 +670,6 @@ function updateCartUI() {
   totalPrice.innerText = `₹${finalTotal.toFixed(2)}`;
 }
 
-// Coupon
 applyCouponBtn.addEventListener('click', () => {
   const code = couponInput.value.trim().toUpperCase();
   if (code === "EATSBOOK20") {
@@ -489,7 +682,7 @@ applyCouponBtn.addEventListener('click', () => {
 });
 
 // =========================================
-// 8. FILTER LISTENERS
+// 9. FILTER LISTENERS & CART DRAWER
 // =========================================
 categoryContainer.addEventListener('click', (e) => {
   const btn = e.target.closest('.category-pill');
@@ -510,9 +703,6 @@ vegOnlyToggle.addEventListener('click', () => {
 
 searchInput.addEventListener('input', renderMenu);
 
-// =========================================
-// 9. DRAWER & MODAL TOGGLES
-// =========================================
 function toggleCart(open) {
   cartDrawer.classList.toggle('open', open);
   cartOverlay.classList.toggle('open', open);
@@ -522,11 +712,23 @@ openCartBtn.addEventListener('click', () => toggleCart(true));
 closeCartBtn.addEventListener('click', () => toggleCart(false));
 cartOverlay.addEventListener('click', () => toggleCart(false));
 
+// =========================================
+// 10. CHECKOUT & LIVE ORDER SIMULATION
+// =========================================
 openCheckoutModalBtn.addEventListener('click', () => {
   if (cart.length === 0) {
     showToast("Add items to your bag first!");
     return;
   }
+  
+  // Require login if not authenticated
+  if (!currentUser) {
+    toggleCart(false);
+    openAuthModal();
+    showToast("Please log in to complete your checkout!");
+    return;
+  }
+
   toggleCart(false);
   checkoutModal.classList.add('open');
 });
@@ -535,10 +737,27 @@ closeCheckoutBtn.addEventListener('click', () => {
   checkoutModal.classList.remove('open');
 });
 
-// Checkout Order Placement & Simulated Delivery
 checkoutForm.addEventListener('submit', (e) => {
   e.preventDefault();
   checkoutModal.classList.remove('open');
+
+  const newOrderId = `Order #EB-${Math.floor(10000 + Math.random() * 90000)}`;
+  const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+  const discount = subtotal * appliedDiscount;
+  const finalTotal = (subtotal - discount + DELIVERY_FEE).toFixed(2);
+
+  // Save to Order History
+  const placedOrder = {
+    orderId: newOrderId,
+    date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+    items: [...cart],
+    totalAmount: finalTotal,
+    status: 'In Transit'
+  };
+
+  orderHistory.unshift(placedOrder);
+  localStorage.setItem('eatsbook_orders', JSON.stringify(orderHistory));
+  updateOrdersBadge();
 
   // Reset Cart
   cart = [];
@@ -546,14 +765,14 @@ checkoutForm.addEventListener('submit', (e) => {
   saveCart();
   checkoutForm.reset();
 
-  // Show Tracker
-  document.getElementById('orderIdDisplay').innerText = `Order #EB-${Math.floor(10000 + Math.random() * 90000)}`;
+  // Show Tracker Modal
+  document.getElementById('orderIdDisplay').innerText = newOrderId;
   trackerModal.classList.add('open');
-  simulateDeliveryProgress();
+  simulateDeliveryProgress(newOrderId);
 });
 
 let etaInterval;
-function simulateDeliveryProgress() {
+function simulateDeliveryProgress(orderId) {
   const s1 = document.getElementById('step1');
   const s2 = document.getElementById('step2');
   const s3 = document.getElementById('step3');
@@ -564,9 +783,9 @@ function simulateDeliveryProgress() {
   s3.className = "tracker-step";
   s4.className = "tracker-step";
 
-  let eta = 22;
+  let eta = 20;
   etaTimeDisplay.innerText = eta;
-  trackingStatusHeading.innerText = "Chef is cooking your order!";
+  trackingStatusHeading.innerText = "Chef is cooking your meal!";
 
   clearInterval(etaInterval);
   etaInterval = setInterval(() => {
@@ -578,7 +797,7 @@ function simulateDeliveryProgress() {
     s2.className = "tracker-step completed";
     s3.className = "tracker-step active";
     trackingStatusHeading.innerText = "Rider picked up the order!";
-    showToast("Ramesh picked up your food from the restaurant!");
+    showToast("Ramesh picked up your food on his bike!");
   }, 4500);
 
   setTimeout(() => {
@@ -587,6 +806,15 @@ function simulateDeliveryProgress() {
     trackingStatusHeading.innerText = "Order Delivered! Enjoy 🎉";
     etaTimeDisplay.innerText = "0";
     clearInterval(etaInterval);
+
+    // Update status in previous orders
+    const targetOrder = orderHistory.find(o => o.orderId === orderId);
+    if (targetOrder) {
+      targetOrder.status = 'Delivered';
+      localStorage.setItem('eatsbook_orders', JSON.stringify(orderHistory));
+      updateOrdersBadge();
+    }
+
     showToast("Order Delivered! Thank you for ordering on Eats Book!");
   }, 9000);
 }
@@ -596,7 +824,7 @@ closeTrackerBtn.addEventListener('click', () => {
 });
 
 // =========================================
-// 10. TOAST NOTIFIER
+// 11. TOAST NOTIFIER
 // =========================================
 let toastTimeout;
 function showToast(message) {
@@ -609,6 +837,8 @@ function showToast(message) {
 }
 
 // Initial Boot
+updateAuthUI();
+updateOrdersBadge();
 renderRestaurants();
 renderMenu();
 updateCartUI();
