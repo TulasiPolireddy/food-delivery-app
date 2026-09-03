@@ -252,11 +252,11 @@ const menuData = [
 ];
 
 // =========================================
-// 3. APP STATE & LOCAL STORAGE
+// 3. APP STATE
 // =========================================
 let cart = JSON.parse(localStorage.getItem('eatsbook_cart')) || [];
 let currentUser = JSON.parse(localStorage.getItem('eatsbook_user')) || null;
-let orderHistory = JSON.parse(localStorage.getItem('eatsbook_orders')) || [];
+let orderHistory = []; // Loaded dynamically per user
 
 let appliedDiscount = 0;
 let selectedRestaurantId = null;
@@ -300,7 +300,6 @@ const loginTabBtn = document.getElementById('loginTabBtn');
 const signupTabBtn = document.getElementById('signupTabBtn');
 const loginForm = document.getElementById('loginForm');
 const signupForm = document.getElementById('signupForm');
-const quickDemoLoginBtn = document.getElementById('quickDemoLoginBtn');
 
 // Orders History Elements
 const ordersModal = document.getElementById('ordersModal');
@@ -308,6 +307,7 @@ const openOrdersBtn = document.getElementById('openOrdersBtn');
 const closeOrdersBtn = document.getElementById('closeOrdersBtn');
 const orderHistoryContainer = document.getElementById('orderHistoryContainer');
 const ordersBadge = document.getElementById('ordersBadge');
+const ordersSubtitle = document.getElementById('ordersSubtitle');
 
 // Checkout & Tracker Elements
 const checkoutModal = document.getElementById('checkoutModal');
@@ -322,7 +322,33 @@ const toast = document.getElementById('toast');
 const toastMsg = document.getElementById('toastMsg');
 
 // =========================================
-// 5. USER AUTHENTICATION
+// 5. USER-SPECIFIC STORAGE HELPERS
+// =========================================
+function getUserOrderKey(email) {
+  if (!email) return 'eatsbook_guest_orders';
+  return `eatsbook_orders_${email.toLowerCase().trim()}`;
+}
+
+function loadUserOrders() {
+  if (currentUser && currentUser.email) {
+    const key = getUserOrderKey(currentUser.email);
+    orderHistory = JSON.parse(localStorage.getItem(key)) || [];
+  } else {
+    orderHistory = [];
+  }
+  updateOrdersBadge();
+}
+
+function saveUserOrders() {
+  if (currentUser && currentUser.email) {
+    const key = getUserOrderKey(currentUser.email);
+    localStorage.setItem(key, JSON.stringify(orderHistory));
+  }
+  updateOrdersBadge();
+}
+
+// =========================================
+// 6. AUTHENTICATION (LOGIN & SWITCHING)
 // =========================================
 function updateAuthUI() {
   if (currentUser) {
@@ -333,7 +359,6 @@ function updateAuthUI() {
         <button class="logout-icon-btn" onclick="logoutUser()" title="Logout"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
       </div>
     `;
-    // Pre-fill checkout form if logged in
     document.getElementById('custName').value = currentUser.name || '';
     document.getElementById('custPhone').value = currentUser.phone || '';
   } else {
@@ -344,6 +369,7 @@ function updateAuthUI() {
       </button>
     `;
   }
+  loadUserOrders();
 }
 
 function openAuthModal() {
@@ -354,7 +380,7 @@ function closeAuthModal() {
   authModal.classList.remove('open');
 }
 
-// Toggle Tabs
+// Switch tabs
 loginTabBtn.addEventListener('click', () => {
   loginTabBtn.classList.add('active');
   signupTabBtn.classList.remove('active');
@@ -369,12 +395,12 @@ signupTabBtn.addEventListener('click', () => {
   loginForm.style.display = 'none';
 });
 
-// Handle Login Form Submit
+// Login Form Submit
 loginForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const emailVal = document.getElementById('loginEmail').value.trim();
-  const nameFromEmail = emailVal.split('@')[0] || "Foodie User";
-  
+  const nameFromEmail = emailVal.split('@')[0] || "User";
+
   currentUser = {
     name: nameFromEmail.charAt(0).toUpperCase() + nameFromEmail.slice(1),
     email: emailVal,
@@ -384,10 +410,10 @@ loginForm.addEventListener('submit', (e) => {
   localStorage.setItem('eatsbook_user', JSON.stringify(currentUser));
   updateAuthUI();
   closeAuthModal();
-  showToast(`Welcome back to Eats Book, ${currentUser.name}!`);
+  showToast(`Logged in as ${currentUser.name}! Showing your personal order history.`);
 });
 
-// Handle Sign Up Form Submit
+// Signup Form Submit
 signupForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const name = document.getElementById('signupName').value.trim();
@@ -398,21 +424,17 @@ signupForm.addEventListener('submit', (e) => {
   localStorage.setItem('eatsbook_user', JSON.stringify(currentUser));
   updateAuthUI();
   closeAuthModal();
-  showToast(`Account created! Welcome, ${name}!`);
+  showToast(`Account created for ${name}!`);
 });
 
-// Quick Demo Login
-quickDemoLoginBtn.addEventListener('click', () => {
-  currentUser = {
-    name: "Aarav Sharma",
-    email: "aarav@example.com",
-    phone: "+91 98765 43210"
-  };
+// Quick Demo Login (Instant Multi-User Test)
+function quickLoginUser(name, email, phone) {
+  currentUser = { name, email, phone };
   localStorage.setItem('eatsbook_user', JSON.stringify(currentUser));
   updateAuthUI();
   closeAuthModal();
-  showToast("Logged in as Aarav Sharma!");
-});
+  showToast(`Switched account to ${name}!`);
+}
 
 function logoutUser() {
   currentUser = null;
@@ -424,21 +446,36 @@ function logoutUser() {
 closeAuthBtn.addEventListener('click', closeAuthModal);
 
 // =========================================
-// 6. PREVIOUS ORDER HISTORY SYSTEM
+// 7. SEPARATE ORDER HISTORY PER LOGIN
 // =========================================
 function updateOrdersBadge() {
   ordersBadge.innerText = orderHistory.length;
 }
 
 function renderOrderHistory() {
-  updateOrdersBadge();
+  loadUserOrders();
+
+  if (!currentUser) {
+    orderHistoryContainer.innerHTML = `
+      <div style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
+        <i class="fa-solid fa-user-lock" style="font-size: 3rem; opacity: 0.35; margin-bottom: 0.75rem;"></i>
+        <p style="font-weight: 700; font-size: 1.1rem; color: var(--text);">Please Log In First</p>
+        <small style="display: block; margin-bottom: 1.25rem;">Log in with your account to access your past orders & receipts.</small>
+        <button class="checkout-btn" style="max-width: 200px; margin: 0 auto;" onclick="ordersModal.classList.remove('open'); openAuthModal();">Log In Now</button>
+      </div>
+    `;
+    ordersSubtitle.innerText = "Log in to view your orders";
+    return;
+  }
+
+  ordersSubtitle.innerText = `Showing past orders for ${currentUser.name} (${currentUser.email})`;
 
   if (orderHistory.length === 0) {
     orderHistoryContainer.innerHTML = `
       <div style="text-align: center; color: var(--text-muted); padding: 3rem 1rem;">
         <i class="fa-solid fa-receipt" style="font-size: 3rem; opacity: 0.3; margin-bottom: 0.75rem;"></i>
-        <p style="font-weight: 700; font-size: 1.1rem; color: var(--text);">No previous orders found!</p>
-        <small>Your ordered dishes and receipts will be saved right here.</small>
+        <p style="font-weight: 700; font-size: 1.1rem; color: var(--text);">No orders placed yet by ${currentUser.name}!</p>
+        <small>Place your first order and it will appear exclusively on this account.</small>
       </div>
     `;
     return;
@@ -505,7 +542,7 @@ closeOrdersBtn.addEventListener('click', () => {
 });
 
 // =========================================
-// 7. RENDER RESTAURANTS & MENU
+// 8. RENDER RESTAURANTS & MENU
 // =========================================
 function renderRestaurants() {
   restaurantsGrid.innerHTML = restaurantsData.map(res => `
@@ -591,7 +628,7 @@ function renderMenu() {
 }
 
 // =========================================
-// 8. CART MANAGEMENT
+// 9. CART MANAGEMENT
 // =========================================
 function saveCart() {
   localStorage.setItem('eatsbook_cart', JSON.stringify(cart));
@@ -682,7 +719,7 @@ applyCouponBtn.addEventListener('click', () => {
 });
 
 // =========================================
-// 9. FILTER LISTENERS & CART DRAWER
+// 10. FILTER LISTENERS & CART DRAWER
 // =========================================
 categoryContainer.addEventListener('click', (e) => {
   const btn = e.target.closest('.category-pill');
@@ -713,19 +750,19 @@ closeCartBtn.addEventListener('click', () => toggleCart(false));
 cartOverlay.addEventListener('click', () => toggleCart(false));
 
 // =========================================
-// 10. CHECKOUT & LIVE ORDER SIMULATION
+// 11. CHECKOUT & USER-SPECIFIC ORDER SAVING
 // =========================================
 openCheckoutModalBtn.addEventListener('click', () => {
   if (cart.length === 0) {
     showToast("Add items to your bag first!");
     return;
   }
-  
-  // Require login if not authenticated
+
+  // Enforce login so order belongs to this specific person
   if (!currentUser) {
     toggleCart(false);
     openAuthModal();
-    showToast("Please log in to complete your checkout!");
+    showToast("Please log in so we can save your order history!");
     return;
   }
 
@@ -746,18 +783,18 @@ checkoutForm.addEventListener('submit', (e) => {
   const discount = subtotal * appliedDiscount;
   const finalTotal = (subtotal - discount + DELIVERY_FEE).toFixed(2);
 
-  // Save to Order History
+  // Save exclusively to the logged-in user's order list
   const placedOrder = {
     orderId: newOrderId,
     date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
     items: [...cart],
     totalAmount: finalTotal,
-    status: 'In Transit'
+    status: 'In Transit',
+    userEmail: currentUser.email
   };
 
   orderHistory.unshift(placedOrder);
-  localStorage.setItem('eatsbook_orders', JSON.stringify(orderHistory));
-  updateOrdersBadge();
+  saveUserOrders();
 
   // Reset Cart
   cart = [];
@@ -765,7 +802,7 @@ checkoutForm.addEventListener('submit', (e) => {
   saveCart();
   checkoutForm.reset();
 
-  // Show Tracker Modal
+  // Show Live Tracker Modal
   document.getElementById('orderIdDisplay').innerText = newOrderId;
   trackerModal.classList.add('open');
   simulateDeliveryProgress(newOrderId);
@@ -807,12 +844,11 @@ function simulateDeliveryProgress(orderId) {
     etaTimeDisplay.innerText = "0";
     clearInterval(etaInterval);
 
-    // Update status in previous orders
+    // Update status in the current user's history
     const targetOrder = orderHistory.find(o => o.orderId === orderId);
     if (targetOrder) {
       targetOrder.status = 'Delivered';
-      localStorage.setItem('eatsbook_orders', JSON.stringify(orderHistory));
-      updateOrdersBadge();
+      saveUserOrders();
     }
 
     showToast("Order Delivered! Thank you for ordering on Eats Book!");
@@ -824,7 +860,7 @@ closeTrackerBtn.addEventListener('click', () => {
 });
 
 // =========================================
-// 11. TOAST NOTIFIER
+// 12. TOAST NOTIFIER
 // =========================================
 let toastTimeout;
 function showToast(message) {
@@ -838,7 +874,6 @@ function showToast(message) {
 
 // Initial Boot
 updateAuthUI();
-updateOrdersBadge();
 renderRestaurants();
 renderMenu();
 updateCartUI();
